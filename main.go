@@ -2,9 +2,12 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"example.com/restAPI/models"
+	"example.com/restAPI/db"
 )
 
 func main() {
+	// Initialize the database
+	db.InitDB()
 	// Create a new Gin instance
 	server := gin.Default()
 
@@ -33,6 +36,8 @@ func createEvent(context *gin.Context) {
 	// save the event
 	event.ID = 1
 	event.UserID = 1
+
+	event.Save();
 
 	context.JSON(201, gin.H{"message": "Event Created!", "event": event})
 }
