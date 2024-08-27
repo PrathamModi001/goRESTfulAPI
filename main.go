@@ -20,7 +20,14 @@ func main() {
 
 func getEvents(context *gin.Context){
 	// gin.H is a shortcut for map[string]interface{}
-	events := models.GetAllEvents()
+	events, err	 := models.GetAllEvents()
+	if err != nil {
+		context.JSON(500, gin.H{"message": err.Error()})
+		return
+	}
+
+
+
 	context.JSON(200, gin.H{"message": "Event Created!", "events": events})
 }
 
@@ -37,7 +44,11 @@ func createEvent(context *gin.Context) {
 	event.ID = 1
 	event.UserID = 1
 
-	event.Save();
-
+	err = event.Save();
+	if err != nil {
+		context.JSON(500, gin.H{"message": err.Error()})
+		return
+	}
+	
 	context.JSON(201, gin.H{"message": "Event Created!", "event": event})
 }

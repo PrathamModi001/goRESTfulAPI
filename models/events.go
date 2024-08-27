@@ -47,6 +47,37 @@ func (e *Event) Save() error {
 	return nil
 }
 
-func GetAllEvents() []Event {
-	return events
+func GetAllEvents() ([]Event, error) {
+	query := `
+	SELECT * FROM events
+	`
+	// db package DB is a pointer to the database connection in db.go (global variable)
+	// you could have prepared and exec the query here, but this is a much simpler query
+	// could also have used Exec directly
+	// we use Query when we expect multiple rows (USED FOR FETCHING DATA)
+	// we use Exec when we expect a CHANGE in the database (USED FOR CHANGING DB)
+	rows, err := db.DB.Query(query)
+	if err != nil {
+		panic(err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	// create a slice of events
+	events := []Event{}
+
+	// iterate over the rows
+	for rows.Next() {
+		var event Event
+		
+		// give the address of pointers IN THE ORDER of the columns
+		err := rows.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
+		if err != nil {
+			panic(err)
+			return nil, err
+		}
+
+		events = append(events, event)
+	}
+	return events, nil
 }
