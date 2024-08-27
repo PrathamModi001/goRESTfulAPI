@@ -17,8 +17,6 @@ type Event struct {
 	UserID      int       // to link the event to the user
 }
 
-var events = []Event{}
-
 func (e *Event) Save() error {
 	query := `
 	INSERT INTO events (name, date, location, description, user_id)
@@ -58,7 +56,6 @@ func GetAllEvents() ([]Event, error) {
 	// we use Exec when we expect a CHANGE in the database (USED FOR CHANGING DB)
 	rows, err := db.DB.Query(query)
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -74,7 +71,6 @@ func GetAllEvents() ([]Event, error) {
 		// give the address of pointers IN THE ORDER of the columns
 		err := rows.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &dateTimeStr, &event.UserID)
 		if err != nil {
-			panic(err)
 			return nil, err
 		}
 
