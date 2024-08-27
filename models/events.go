@@ -1,8 +1,8 @@
 package models
 
 import (
-	"time"
 	"example.com/restAPI/db"
+	"time"
 )
 
 // all the logic to storing event data in the database
@@ -33,7 +33,7 @@ func (e *Event) Save() error {
 	defer stmt.Close()
 
 	// safe way to inject the values
-	result, err := stmt.Exec(e.Name, e.DateTime, e.Location, e.Description, e.UserID) 
+	result, err := stmt.Exec(e.Name, e.DateTime, e.Location, e.Description, e.UserID)
 	if err != nil {
 		return err
 	}
@@ -69,9 +69,10 @@ func GetAllEvents() ([]Event, error) {
 	// iterate over the rows
 	for rows.Next() {
 		var event Event
-		
+		var dateTimeStr string
+
 		// give the address of pointers IN THE ORDER of the columns
-		err := rows.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &event.DateTime, &event.UserID)
+		err := rows.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &dateTimeStr, &event.UserID)
 		if err != nil {
 			panic(err)
 			return nil, err
@@ -81,3 +82,23 @@ func GetAllEvents() ([]Event, error) {
 	}
 	return events, nil
 }
+
+func GetEventById(id int64) (Event, error) {
+    query := `SELECT * FROM events WHERE id = ?`
+    row := db.DB.QueryRow(query, id)
+
+    var event Event
+    var dateTimeStr string
+    err := row.Scan(&event.ID, &event.Name, &event.Description, &event.Location, &dateTimeStr, &event.UserID)
+    if err != nil {
+        return Event{}, err
+    }
+
+    event.DateTime, err = time.Parse("2006-01-02 15:04:05", dateTimeStr)
+    if err != nil {
+        return Event{}, err
+    }
+
+    return event, nil
+}
+
