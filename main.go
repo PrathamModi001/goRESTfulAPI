@@ -1,20 +1,16 @@
 package main
 
 import (
-	"example.com/restAPI/db"
-	"example.com/restAPI/routes"
+	"example.com/rest-api/db"
+	"example.com/rest-api/routes"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	// Initialize the database
 	db.InitDB()
-	// Create a new Gin instance
 	server := gin.Default()
 
-	// Register the routes
 	routes.RegisterRoutes(server)
 
-	// mention the port
-	server.Run(":8080")
+	server.Run(":8080") // localhost:8080
 }
