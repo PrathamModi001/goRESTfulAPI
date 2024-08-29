@@ -9,7 +9,6 @@ import (
 )
 
 func getEvents(context *gin.Context) {
-	// gin.H is a shortcut for map[string]interface{}
 	events, err := models.GetAllEvents()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch events. Try again later."})
@@ -36,7 +35,6 @@ func getEvent(context *gin.Context) {
 }
 
 func createEvent(context *gin.Context) {
-	// extract data from the body
 	var event models.Event
 	err := context.ShouldBindJSON(&event)
 
@@ -45,9 +43,9 @@ func createEvent(context *gin.Context) {
 		return
 	}
 
-	// save the event
 	event.ID = 1
 	event.UserID = 1
+
 	err = event.Save()
 
 	if err != nil {
@@ -66,6 +64,7 @@ func updateEvent(context *gin.Context) {
 	}
 
 	_, err = models.GetEventByID(eventId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch the event."})
 		return
@@ -73,6 +72,7 @@ func updateEvent(context *gin.Context) {
 
 	var updatedEvent models.Event
 	err = context.ShouldBindJSON(&updatedEvent)
+
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Could not parse request data."})
 		return
@@ -95,14 +95,16 @@ func deleteEvent(context *gin.Context) {
 	}
 
 	event, err := models.GetEventByID(eventId)
+
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch the event."})
 		return
 	}
 
-	err = event.DeleteEvent()
+	err = event.Delete()
+
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not delete event."})
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not delete the event."})
 		return
 	}
 
