@@ -19,33 +19,34 @@ func GenerateToken(email string, userId int64) (string, error) {
 	return token.SignedString([]byte(secretKey))
 }
 
-func VerifyToken(tokenString string) (jwt.MapClaims, error) {
+func VerifyToken(tokenString string) (string, int64, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// type checking
-		_, ok := token.Method.(*jwt.SigningMethodHMAC)
-		if !ok {
-			return nil, errors.New("Invalid token")
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid token signing method")
 		}
 		return []byte(secretKey), nil
 	})
 
-	if err != nil {
-		return nil, err
+	if err != nil || !token.Valid {
+		return "", 0, errors.New("invalid token")
 	}
 
-	if !token.Valid {
-		return nil, err
-	}
-
-	// checking for claims if token is valid and method is HMAC
-	_, ok := token.Claims.(jwt.MapClaims)
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, errors.New("Invalid token")
+		return "", 0, errors.New("invalid token claims")
 	}
 
-	// email := claims["email"].(string)
-	// userId := claims["userId"].(int64)
+	// Extract email and userId
+	email, emailOk := claims["email"].(string)
+	userIdFloat, userIdOk := claims["userId"].(float64) // JWT numeric claims are float64
 
+	if !emailOk || !userIdOk {
+		return "", 0, errors.New("email or userId not found in token claims")
+	}
 
-	return token.Claims.(jwt.MapClaims), nil
+	// Convert userId from float64 to int64
+	userId := int64(userIdFloat)
+
+	return email, userId, nil
 }
+
