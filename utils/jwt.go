@@ -38,7 +38,7 @@ func VerifyToken(tokenString string) (jwt.MapClaims, error) {
 	}
 
 	// checking for claims if token is valid and method is HMAC
-	claims, ok := token.Claims.(jwt.MapClaims)
+	_, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
 		return nil, errors.New("Invalid token")
 	}
