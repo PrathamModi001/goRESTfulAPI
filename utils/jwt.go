@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -19,34 +20,35 @@ func GenerateToken(email string, userId int64) (string, error) {
 	return token.SignedString([]byte(secretKey))
 }
 
-func VerifyToken(tokenString string) (string, int64, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("invalid token signing method")
+func VerifyToken(token string) (int64, error) {
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+
+		if !ok {
+			return nil, errors.New("Unexpected signing method")
 		}
+
 		return []byte(secretKey), nil
 	})
 
-	if err != nil || !token.Valid {
-		return "", 0, errors.New("invalid token")
+	if err != nil {
+		fmt.Println("Could not parse token")
+		return 0, errors.New("Could not parse token.")
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
+	tokenIsValid := parsedToken.Valid
+
+	if !tokenIsValid {
+		return 0, errors.New("Invalid token!")
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+
 	if !ok {
-		return "", 0, errors.New("invalid token claims")
+		return 0, errors.New("Invalid token claims.")
 	}
 
-	// Extract email and userId
-	email, emailOk := claims["email"].(string)
-	userIdFloat, userIdOk := claims["userId"].(float64) // JWT numeric claims are float64
-
-	if !emailOk || !userIdOk {
-		return "", 0, errors.New("email or userId not found in token claims")
-	}
-
-	// Convert userId from float64 to int64
-	userId := int64(userIdFloat)
-
-	return email, userId, nil
+	// email := claims["email"].(string)
+	userId := int64(claims["userId"].(float64))
+	return userId, nil
 }
-
